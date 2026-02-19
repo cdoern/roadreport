@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/charliedoern/projects/Documents/roadreport log --oneline -5)",
+      "Bash(git fetch:*)",
+      "Bash(bash .specify/scripts/bash/create-new-feature.sh --json \"Build an application that crowdsources user reports of sidewalks/roads and displays a heatmap with information on where the best and worst conditions are in an area for running, walking, biking, commuting, etc. This app is intended to be web based, and its main view meant to be a map. The default usage is for route planning for runs. There should also be a seamless way to file a report, search for areas, etc.\" --number 1 --short-name \"road-report-heatmap\")"
+    ]
+  }
+}
