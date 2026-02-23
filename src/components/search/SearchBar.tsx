@@ -58,6 +58,14 @@ export function SearchBar({ mapRef }: SearchBarProps) {
       url.searchParams.set('limit', '5');
       url.searchParams.set('addressdetails', '1');
 
+      // Bias results toward the current map viewport without hard-restricting
+      // to it (bounded=0 allows global fallback when no local results exist).
+      const viewbox = mapRef.current?.getBoundsString() ?? null;
+      if (viewbox) {
+        url.searchParams.set('viewbox', viewbox);
+        url.searchParams.set('bounded', '0');
+      }
+
       const res = await fetch(url.toString(), {
         headers: { Referer: window.location.origin },
         signal: abortRef.current.signal,
@@ -66,14 +74,19 @@ export function SearchBar({ mapRef }: SearchBarProps) {
       if (!res.ok) throw new Error(`Nominatim returned HTTP ${res.status}`);
 
       const data = (await res.json()) as NominatimResult[];
-      setResults(data.map(parseNominatimResult));
+      // Exclude administrative boundaries (countries, states, counties) which
+      // are not useful navigation targets for road-condition reporting.
+      const filtered = data
+        .filter((r) => r.class !== 'boundary')
+        .map(parseNominatimResult);
+      setResults(filtered);
     } catch (err) {
       if ((err as Error).name === 'AbortError') return; // expected on fast typing
       setResults([]);
     } finally {
       setHasSearched(true);
     }
-  }, []);
+  }, [mapRef]);
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
