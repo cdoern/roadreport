@@ -49,12 +49,14 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-/** Half-cell-size tolerance (degrees) for hit-testing a click against cells. */
+/** Click hit-test tolerance in degrees per zoom band.
+ *  0.05× cell_deg gives ~55 m at the default zoom (13) and ~28 m at street
+ *  level (14+) — tight enough that clicking a block away does not trigger. */
 function clickTolerance(zoom: number): number {
   const entry =
     ZOOM_CELL_SIZES.find((s) => zoom <= s.maxZoom) ??
     ZOOM_CELL_SIZES[ZOOM_CELL_SIZES.length - 1];
-  return entry.cellDeg * 0.55;
+  return entry.cellDeg * 0.05;
 }
 
 // -------------------------

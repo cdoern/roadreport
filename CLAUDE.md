@@ -5,6 +5,8 @@ Auto-generated from all feature plans. Last updated: 2026-02-19
 ## Active Technologies
 - TypeScript 5.x / React 18 + Vite 5, Tailwind CSS 3, focus-trap-react (already installed), Leaflet / react-leaflet v4 (002-compact-report-form)
 - N/A — form state is transient; Supabase submission logic unchanged (002-compact-report-form)
+- PostgreSQL 15 (Supabase) + PostGIS 3; TypeScript 5 / React 18 (no changes) + PostGIS `ST_SnapToGrid`, `ST_X`, `ST_Y`, `AVG()` — all already in use (003-fix-heatmap-accuracy)
+- Supabase PostgreSQL — `condition_reports` table (no schema change); `get_heatmap_cells` RPC updated (003-fix-heatmap-accuracy)
 
 - TypeScript 5.x, Node.js 20 LTS (build toolchain) (001-road-report-heatmap)
 
@@ -24,6 +26,7 @@ npm test && npm run lint
 TypeScript 5.x, Node.js 20 LTS (build toolchain): Follow standard conventions
 
 ## Recent Changes
+- 003-fix-heatmap-accuracy: Added PostgreSQL 15 (Supabase) + PostGIS 3; TypeScript 5 / React 18 (no changes) + PostGIS `ST_SnapToGrid`, `ST_X`, `ST_Y`, `AVG()` — all already in use
 - 002-compact-report-form: Added TypeScript 5.x / React 18 + Vite 5, Tailwind CSS 3, focus-trap-react (already installed), Leaflet / react-leaflet v4
 
 - 001-road-report-heatmap: Added TypeScript 5.x, Node.js 20 LTS (build toolchain)
