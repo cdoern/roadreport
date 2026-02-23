@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-02-19
 
 ## Active Technologies
+- TypeScript 5.x / React 18 + Vite 5, Tailwind CSS 3, focus-trap-react (already installed), Leaflet / react-leaflet v4 (002-compact-report-form)
+- N/A — form state is transient; Supabase submission logic unchanged (002-compact-report-form)
 
 - TypeScript 5.x, Node.js 20 LTS (build toolchain) (001-road-report-heatmap)
 
@@ -22,6 +24,7 @@ npm test && npm run lint
 TypeScript 5.x, Node.js 20 LTS (build toolchain): Follow standard conventions
 
 ## Recent Changes
+- 002-compact-report-form: Added TypeScript 5.x / React 18 + Vite 5, Tailwind CSS 3, focus-trap-react (already installed), Leaflet / react-leaflet v4
 
 - 001-road-report-heatmap: Added TypeScript 5.x, Node.js 20 LTS (build toolchain)
 

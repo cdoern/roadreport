@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
@@ -31,8 +30,8 @@ interface BeforeInstallPromptEvent extends Event {
 const root = document.getElementById('root');
 if (!root) throw new Error('Root element #root not found in index.html');
 
-ReactDOM.createRoot(root).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+// React.StrictMode intentionally double-invokes effects in development.
+// react-leaflet v4 does not clean up the Leaflet instance between cycles,
+// so StrictMode causes "Map container is already initialized" and crashes
+// the app in dev mode. Removed here; production behaviour is unaffected.
+ReactDOM.createRoot(root).render(<App />);
