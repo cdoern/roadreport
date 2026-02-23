@@ -47,9 +47,9 @@ const CONDITION_LABELS: Record<ConditionType, string> = {
 };
 
 const SEVERITY_OPTIONS: { value: 1 | 2 | 3; label: string }[] = [
-  { value: 1, label: '1 – Good / Mild' },
+  { value: 1, label: '1 – Mild' },
   { value: 2, label: '2 – Fair' },
-  { value: 3, label: '3 – Poor / Severe' },
+  { value: 3, label: '3 – Severe' },
 ];
 
 const DESCRIPTION_MAX_LENGTH = 280;
@@ -81,14 +81,19 @@ export interface ReportFormProps {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Slide-up report form panel rendered in the accessible overlay layer.
+ * Compact slide-up report form panel rendered in the accessible overlay layer.
  *
- * Manages its own field state.  Submit logic (T028) and GPS accuracy handling
- * (T029) are co-located here per the task plan.
+ * Capped at 44vh so the map remains visible and interactive (≥56% of the
+ * viewport) while a report is being filed. Layout uses no internal scroll —
+ * all required controls fit in a single non-scrolling panel:
+ *   - Horizontally scrollable chip row for condition type (14 options)
+ *   - Horizontal 3-segment button group for severity
+ *   - Collapsible "Add note" toggle for the optional description
  *
  * The form is *always mounted* (only translated off-screen when closed) so
- * that the slide-up CSS transition works.  FocusTrap is activated only when
- * `isOpen` is true.
+ * the slide-up CSS transition works. FocusTrap is activated only when
+ * `isOpen` is true. `allowOutsideClick: true` lets map pan/zoom events pass
+ * through so the user can reposition the pin without closing the form.
  */
 export function ReportForm({
   isOpen,
@@ -106,6 +111,7 @@ export function ReportForm({
   const [conditionType, setConditionType] = useState<ConditionType | ''>(defaultCondition);
   const [severity, setSeverity] = useState<1 | 2 | 3 | null>(null);
   const [description, setDescription] = useState('');
+  const [noteExpanded, setNoteExpanded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const isFormValid = conditionType !== '' && severity !== null && pinLocation !== null;
@@ -157,6 +163,8 @@ export function ReportForm({
       active={isOpen}
       focusTrapOptions={{
         initialFocus: '#report-form-close-btn',
+        // Required: allows map touch/click events to pass through the focus trap so
+        // users can pan the map while the form is open (US2).
         allowOutsideClick: true,
         // Do NOT use onDeactivate to close — in React StrictMode the trap's
         // effect cleanup fires onDeactivate before the second setup pass,
@@ -171,12 +179,13 @@ export function ReportForm({
         aria-labelledby="report-form-title"
         onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
         className={`fixed bottom-0 inset-x-0 z-[1500] bg-white rounded-t-2xl shadow-2xl
+                   max-h-[44vh] overflow-hidden flex flex-col
                    transform transition-transform duration-300 ease-in-out
                    ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-100">
-          <h2 id="report-form-title" className="text-lg font-bold text-gray-900">
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-100 shrink-0">
+          <h2 id="report-form-title" className="text-base font-bold text-gray-900">
             Report a Condition
           </h2>
           <button
@@ -193,31 +202,33 @@ export function ReportForm({
           </button>
         </div>
 
-        {/* Scrollable body */}
-        <div className="overflow-y-auto max-h-[70vh] px-5 py-4">
-          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        {/* Form body */}
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 px-5 py-4 overflow-hidden">
 
-            {/* ── Location display (T027) ── */}
+            {/* ── Location display ── */}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
-                Location
-              </p>
-              {pinLocation ? (
-                <p className="text-sm text-gray-700 font-mono">
-                  {pinLocation.lat.toFixed(5)}, {pinLocation.lng.toFixed(5)}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-400 italic">Acquiring GPS…</p>
-              )}
-              <p className="text-xs text-gray-400 mt-1">
-                Drag the green pin on the map to adjust the exact location.
-              </p>
+              <div className="flex items-center gap-1.5">
+                {/* Pin icon */}
+                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  className="text-green-600 shrink-0">
+                  <path d="M12 21C12 21 5 13.5 5 8.5a7 7 0 1 1 14 0c0 5-7 12.5-7 12.5z" />
+                  <circle cx="12" cy="8.5" r="2.5" />
+                </svg>
+                {pinLocation ? (
+                  <span className="text-sm text-gray-700 font-mono">
+                    {pinLocation.lat.toFixed(5)}, {pinLocation.lng.toFixed(5)}
+                  </span>
+                ) : (
+                  <span className="text-sm text-gray-400 italic">Acquiring GPS…</span>
+                )}
+              </div>
 
-              {/* ── T029: GPS accuracy warning ── */}
+              {/* GPS accuracy warning */}
               {showAccuracyWarning && (
                 <div
                   role="status"
-                  className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800"
+                  className="mt-1.5 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800"
                 >
                   <span aria-hidden="true" className="text-amber-500 mt-px">⚠</span>
                   <span>
@@ -228,93 +239,111 @@ export function ReportForm({
               )}
             </div>
 
-            {/* ── Condition type (T027) ── */}
+            {/* ── Condition type ── */}
             <div>
-              <label
-                htmlFor="condition-type-select"
-                className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1"
-              >
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
                 Condition type <span aria-hidden="true" className="text-red-500">*</span>
-              </label>
-              <select
-                id="condition-type-select"
-                required
-                value={conditionType}
-                onChange={(e) => setConditionType(e.target.value as ConditionType)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm
-                           text-gray-800 bg-white focus:outline-none
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              </p>
+              {/* Horizontally scrollable chip row; scrollbar hidden via inline style */}
+              <div
+                className="flex items-center gap-2 pb-1"
+                style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
               >
-                <option value="">Select a condition…</option>
-                <optgroup label="Weather &amp; Environmental">
-                  {WEATHER_CONDITIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {CONDITION_LABELS[c]}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Road &amp; Sidewalk Structural">
-                  {STRUCTURAL_CONDITIONS.map((c) => (
-                    <option key={c} value={c}>
-                      {CONDITION_LABELS[c]}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-            </div>
-
-            {/* ── Severity (T027) ── */}
-            <fieldset>
-              <legend className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-2">
-                Severity <span aria-hidden="true" className="text-red-500">*</span>
-              </legend>
-              <div className="flex flex-col gap-2">
-                {SEVERITY_OPTIONS.map(({ value, label }) => (
-                  <label
-                    key={value}
-                    className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 cursor-pointer
-                                transition-colors text-sm
-                                ${severity === value
-                                  ? 'border-green-500 bg-green-50 text-green-800'
-                                  : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                <span className="text-xs text-gray-400 shrink-0 self-center">Weather</span>
+                {WEATHER_CONDITIONS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={conditionType === c}
+                    onClick={() => setConditionType(c)}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium
+                                transition-colors focus:outline-none focus-visible:ring-2
+                                focus-visible:ring-green-500
+                                ${conditionType === c
+                                  ? 'bg-green-600 text-white border-green-600'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
                                 }`}
                   >
-                    <input
-                      type="radio"
-                      name="severity"
-                      value={value}
-                      checked={severity === value}
-                      onChange={() => setSeverity(value)}
-                      className="accent-green-600"
-                    />
-                    {label}
-                  </label>
+                    {CONDITION_LABELS[c]}
+                  </button>
+                ))}
+                <span className="text-xs text-gray-400 shrink-0 self-center pl-1">Structural</span>
+                {STRUCTURAL_CONDITIONS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={conditionType === c}
+                    onClick={() => setConditionType(c)}
+                    className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-medium
+                                transition-colors focus:outline-none focus-visible:ring-2
+                                focus-visible:ring-green-500
+                                ${conditionType === c
+                                  ? 'bg-green-600 text-white border-green-600'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                                }`}
+                  >
+                    {CONDITION_LABELS[c]}
+                  </button>
                 ))}
               </div>
-            </fieldset>
+            </div>
 
-            {/* ── Description (T027) ── */}
+            {/* ── Severity ── */}
             <div>
-              <label
-                htmlFor="description-textarea"
-                className="block text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1"
-              >
-                Description <span className="normal-case font-normal">(optional)</span>
-              </label>
-              <textarea
-                id="description-textarea"
-                rows={3}
-                maxLength={DESCRIPTION_MAX_LENGTH}
-                placeholder="Any additional details…"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm
-                           text-gray-800 resize-none focus:outline-none
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-              <p className="text-right text-xs text-gray-400 mt-0.5">
-                {description.length} / {DESCRIPTION_MAX_LENGTH}
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1.5">
+                Severity <span aria-hidden="true" className="text-red-500">*</span>
               </p>
+              <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+                {SEVERITY_OPTIONS.map(({ value, label }, idx) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={severity === value}
+                    onClick={() => setSeverity(value)}
+                    className={`flex-1 py-2 text-sm font-medium transition-colors
+                                focus:outline-none focus-visible:ring-2 focus-visible:ring-inset
+                                focus-visible:ring-green-500
+                                ${idx < SEVERITY_OPTIONS.length - 1 ? 'border-r border-gray-200' : ''}
+                                ${severity === value
+                                  ? 'bg-green-600 text-white'
+                                  : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* ── Note (optional, collapsible) ── */}
+            <div>
+              <button
+                type="button"
+                aria-expanded={noteExpanded}
+                onClick={() => setNoteExpanded((v) => !v)}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors
+                           focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded"
+              >
+                {noteExpanded ? '– Hide note' : '+ Add note (optional)'}
+              </button>
+              {noteExpanded && (
+                <div className="mt-2">
+                  <textarea
+                    id="description-textarea"
+                    rows={2}
+                    maxLength={DESCRIPTION_MAX_LENGTH}
+                    placeholder="Any additional details…"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm
+                               text-gray-800 resize-none focus:outline-none
+                               focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                  <p className="text-right text-xs text-gray-400 mt-0.5">
+                    {description.length} / {DESCRIPTION_MAX_LENGTH}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* ── Submit ── */}
@@ -331,7 +360,6 @@ export function ReportForm({
               {isSubmitting ? 'Submitting…' : 'Submit Report'}
             </button>
           </form>
-        </div>
       </div>
     </FocusTrap>
   );
