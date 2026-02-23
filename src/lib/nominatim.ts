@@ -20,6 +20,9 @@ export interface NominatimResult {
    * Use to flyToBounds rather than just panning to the centroid.
    */
   boundingbox: [string, string, string, string];
+  /** Nominatim result class, e.g. "highway", "place", "boundary". Used to
+   *  filter out administrative-only regions (countries, states, counties). */
+  class: string;
   address?: {
     road?: string;
     neighbourhood?: string;
@@ -48,13 +51,26 @@ export interface GeocodingResult {
 }
 
 /**
+ * Builds a concise display label from a raw Nominatim display_name string.
+ *
+ * Algorithm: split on ', ', remove pure-numeric postcode parts (4+ digits),
+ * return the first 3 remaining parts joined with ', '.
+ * Example: "Main Street, Back Bay, Boston, Suffolk County, MA, 02101, US"
+ *       → "Main Street, Back Bay, Boston"
+ */
+function formatDisplayName(raw: string): string {
+  const parts = raw.split(', ').filter((p) => !/^\d{4,}$/.test(p.trim()));
+  return parts.slice(0, 3).join(', ') || raw;
+}
+
+/**
  * Converts a raw Nominatim result into the app's `GeocodingResult` type.
  */
 export function parseNominatimResult(result: NominatimResult): GeocodingResult {
   const [south, north, west, east] = result.boundingbox.map(parseFloat);
   return {
     placeId: result.place_id,
-    displayName: result.display_name,
+    displayName: formatDisplayName(result.display_name),
     lat: parseFloat(result.lat),
     lng: parseFloat(result.lon),
     bounds: [

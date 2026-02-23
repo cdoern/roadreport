@@ -11,6 +11,10 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
 export interface MapViewHandle {
   /** Animate the map to show the given bounds — used by SearchBar (T031). */
   flyToBounds(bounds: LatLngBoundsExpression, options?: FitBoundsOptions): void;
+  /** Returns the current viewport as "west,south,east,north" — the format
+   *  expected by the Nominatim `viewbox` query parameter. Returns null if
+   *  the map has not yet initialised. */
+  getBoundsString(): string | null;
 }
 
 // -------------------------
@@ -69,6 +73,11 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
     () => ({
       flyToBounds: (bounds, options) => {
         mapRef.current?.flyToBounds(bounds, options);
+      },
+      getBoundsString: () => {
+        const b = mapRef.current?.getBounds();
+        if (!b) return null;
+        return `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
       },
     }),
     []
