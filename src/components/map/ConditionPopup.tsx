@@ -50,13 +50,13 @@ function relativeTime(iso: string): string {
 }
 
 /** Click hit-test tolerance in degrees per zoom band.
- *  0.2× cell_deg keeps the popup within ~1 city block of the heat dot at street
- *  level (zoom 14+: ~110 m) while remaining comfortable at lower zooms. */
+ *  0.05× cell_deg gives ~55 m at the default zoom (13) and ~28 m at street
+ *  level (14+) — tight enough that clicking a block away does not trigger. */
 function clickTolerance(zoom: number): number {
   const entry =
     ZOOM_CELL_SIZES.find((s) => zoom <= s.maxZoom) ??
     ZOOM_CELL_SIZES[ZOOM_CELL_SIZES.length - 1];
-  return entry.cellDeg * 0.2;
+  return entry.cellDeg * 0.05;
 }
 
 // -------------------------
