@@ -227,7 +227,7 @@ Safari does not show an automatic install prompt. Instruct users:
 | Supabase egress | 5 GB/month | Dashboard → Settings → Infrastructure |
 | Vercel bandwidth | 100 GB/month | Vercel dashboard → Usage |
 
-If Supabase egress approaches the limit, reduce the heatmap poll interval from 90s to 120s in `src/hooks/useHeatmapData.ts`.
+If Supabase egress approaches the limit, reduce the heatmap poll interval from 90s to 120s by updating `POLL_INTERVAL_MS` in `src/lib/constants.ts`.
 
 ---
 

@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Leaflet resets — ensure map fills its container without z-index fights */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
