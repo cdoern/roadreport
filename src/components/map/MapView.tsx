@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
-import type { FlyToBoundsOptions, LatLngBoundsExpression, Map as LeafletMap } from 'leaflet';
+import type { FitBoundsOptions, LatLngBoundsExpression, Map as LeafletMap } from 'leaflet';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
 
 // -------------------------
@@ -10,7 +10,7 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from '../../lib/constants';
 
 export interface MapViewHandle {
   /** Animate the map to show the given bounds — used by SearchBar (T031). */
-  flyToBounds(bounds: LatLngBoundsExpression, options?: FlyToBoundsOptions): void;
+  flyToBounds(bounds: LatLngBoundsExpression, options?: FitBoundsOptions): void;
 }
 
 // -------------------------

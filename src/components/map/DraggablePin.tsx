@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import { divIcon, marker } from 'leaflet';
+import type { Marker } from 'leaflet';
 import { useMap } from 'react-leaflet';
 
 // Green circle icon — avoids the Vite/Leaflet default-icon URL issue.
-const REPORT_ICON = L.divIcon({
+const REPORT_ICON = divIcon({
   className: '',
   html: `<div style="
     width:28px; height:28px;
@@ -35,7 +36,7 @@ interface DraggablePinProps {
  */
 export function DraggablePin({ active, lat, lng, onPositionChange }: DraggablePinProps) {
   const map = useMap();
-  const markerRef = useRef<L.Marker | null>(null);
+  const markerRef = useRef<Marker | null>(null);
 
   // Keep callback ref stable so the dragend listener always calls the latest version.
   const onPositionChangeRef = useRef(onPositionChange);
@@ -59,7 +60,7 @@ export function DraggablePin({ active, lat, lng, onPositionChange }: DraggablePi
     // No GPS yet — wait for next render when lat/lng are available.
     if (lat === null || lng === null) return;
 
-    markerRef.current = L.marker([lat, lng], {
+    markerRef.current = marker([lat, lng], {
       draggable: true,
       icon: REPORT_ICON,
       title: 'Drag to set the exact report location',

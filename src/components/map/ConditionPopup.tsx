@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Popup, useMapEvents } from 'react-leaflet';
-import type { LatLng } from 'leaflet';
+import type { LatLng, LeafletMouseEvent } from 'leaflet';
 import { ACTIVITY_CONDITION_PRIORITY } from '../../types';
 import type { ActivityType, ConditionType, HeatmapCell } from '../../types';
 import { LOW_DATA_THRESHOLD, ZOOM_CELL_SIZES } from '../../lib/constants';
@@ -82,7 +82,7 @@ export function ConditionPopup({ cells, activityType }: ConditionPopupProps) {
   const [clickPos, setClickPos] = useState<{ latlng: LatLng; zoom: number } | null>(null);
 
   useMapEvents({
-    click(e) {
+    click(e: LeafletMouseEvent) {
       setClickPos({ latlng: e.latlng, zoom: e.target.getZoom() });
     },
   });
@@ -117,7 +117,7 @@ export function ConditionPopup({ cells, activityType }: ConditionPopupProps) {
   // Click hit empty area
   if (currentCell === null) {
     return (
-      <Popup position={clickPos.latlng} onClose={() => setClickPos(null)}>
+      <Popup position={clickPos.latlng} eventHandlers={{ popupclose: () => setClickPos(null) }}>
         <p className="text-sm text-gray-500 py-1">No reports yet for this area.</p>
       </Popup>
     );
@@ -129,7 +129,7 @@ export function ConditionPopup({ cells, activityType }: ConditionPopupProps) {
   const isLowData = currentCell.report_count < LOW_DATA_THRESHOLD;
 
   return (
-    <Popup position={clickPos.latlng} onClose={() => setClickPos(null)}>
+    <Popup position={clickPos.latlng} eventHandlers={{ popupclose: () => setClickPos(null) }}>
       <div className="flex flex-col gap-1.5 min-w-[160px] py-1">
         <p className="font-semibold text-sm text-gray-800">
           {CONDITION_LABELS[displayCondition]}

@@ -3,7 +3,8 @@
 import 'leaflet.heat';
 
 import { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import { heatLayer } from 'leaflet';
+import type { HeatLayer, HeatLatLngTuple } from 'leaflet';
 import { useMap } from 'react-leaflet';
 import type { HeatmapCell } from '../../types';
 
@@ -24,7 +25,7 @@ function zoomToHeatOptions(zoom: number): { radius: number; blur: number } {
 }
 
 /** Only call redraw when the map canvas has a real size (avoids IndexSizeError). */
-function safeRedraw(heat: L.HeatLayer, map: L.Map) {
+function safeRedraw(heat: HeatLayer, map: ReturnType<typeof useMap>) {
   const { x, y } = map.getSize();
   if (x > 0 && y > 0) heat.redraw();
 }
@@ -44,7 +45,7 @@ interface HeatmapOverlayProps {
  */
 export function HeatmapOverlay({ cells }: HeatmapOverlayProps) {
   const map = useMap();
-  const heatRef = useRef<L.HeatLayer | null>(null);
+  const heatRef = useRef<HeatLayer | null>(null);
 
   // Create the heat layer once — deferred until the map container is sized.
   // leaflet.heat calls canvas.getImageData() on addTo(), which throws
@@ -52,7 +53,7 @@ export function HeatmapOverlay({ cells }: HeatmapOverlayProps) {
   useEffect(() => {
     function initLayer() {
       const { radius, blur } = zoomToHeatOptions(map.getZoom());
-      heatRef.current = L.heatLayer([], {
+      heatRef.current = heatLayer([], {
         minOpacity: 0.3,
         gradient: HEAT_GRADIENT,
         radius,
@@ -81,7 +82,7 @@ export function HeatmapOverlay({ cells }: HeatmapOverlayProps) {
   // Update heat layer data whenever cells change.
   useEffect(() => {
     if (!heatRef.current) return;
-    const points: L.HeatLatLngTuple[] = cells.map((c) => [
+    const points: HeatLatLngTuple[] = cells.map((c) => [
       c.cell_lat,
       c.cell_lng,
       c.avg_score / 3, // normalise 0–3 → 0–1
