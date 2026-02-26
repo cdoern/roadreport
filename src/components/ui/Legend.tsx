@@ -26,7 +26,7 @@ export function Legend({ activityType, totalReports = 0 }: LegendProps) {
   return (
     <div
       aria-label="Heatmap legend"
-      className="absolute bottom-8 right-3 z-[1000] bg-white/90 backdrop-blur-sm
+      className="absolute top-20 right-3 z-[1000] sm:top-auto sm:bottom-8 bg-white/90 backdrop-blur-sm
                  rounded-xl shadow-lg px-4 py-3 flex flex-col gap-2 min-w-[140px]"
     >
       {/* Activity pill */}
