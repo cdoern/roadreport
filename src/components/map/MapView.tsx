@@ -15,6 +15,11 @@ export interface MapViewHandle {
    *  expected by the Nominatim `viewbox` query parameter. Returns null if
    *  the map has not yet initialised. */
   getBoundsString(): string | null;
+  /** Returns the map's current centre as { lat, lng }. Returns null if the
+   *  map has not yet initialised. Used by openReport() to place the initial
+   *  report pin at the visible centre when the user has panned away from
+   *  their GPS location. */
+  getCenter(): { lat: number; lng: number } | null;
 }
 
 // -------------------------
@@ -78,6 +83,11 @@ export const MapView = forwardRef<MapViewHandle, MapViewProps>(function MapView(
         const b = mapRef.current?.getBounds();
         if (!b) return null;
         return `${b.getWest()},${b.getSouth()},${b.getEast()},${b.getNorth()}`;
+      },
+      getCenter: () => {
+        const c = mapRef.current?.getCenter();
+        if (!c) return null;
+        return { lat: c.lat, lng: c.lng };
       },
     }),
     []

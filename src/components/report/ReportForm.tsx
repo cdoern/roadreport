@@ -202,8 +202,14 @@ export function ReportForm({
           </button>
         </div>
 
-        {/* Form body */}
-        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 px-5 py-4 overflow-hidden">
+        {/* Form body — flex column so the submit button is pinned to the bottom
+             and the fields area scrolls independently. This prevents the button
+             from being clipped when the note textarea expands or the mobile
+             keyboard raises the viewport. */}
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col flex-1 overflow-hidden">
+
+          {/* Scrollable fields area */}
+          <div className="flex flex-col gap-4 px-5 py-4 flex-1 overflow-y-auto">
 
             {/* ── Location display ── */}
             <div>
@@ -346,7 +352,11 @@ export function ReportForm({
               )}
             </div>
 
-            {/* ── Submit ── */}
+          </div>
+
+          {/* Sticky submit footer — lives outside the scrollable area so it
+               is always visible regardless of keyboard state or note expansion. */}
+          <div className="flex-shrink-0 px-5 pb-5 pt-2 border-t border-gray-100">
             <button
               type="submit"
               disabled={!isFormValid || isSubmitting}
@@ -359,6 +369,8 @@ export function ReportForm({
             >
               {isSubmitting ? 'Submitting…' : 'Submit Report'}
             </button>
+          </div>
+
           </form>
       </div>
     </FocusTrap>

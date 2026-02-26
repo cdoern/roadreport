@@ -20,6 +20,16 @@ export const POLL_INTERVAL_MS = 90_000;
 /** GPS accuracy threshold in metres — warn user if accuracy is worse than this. */
 export const GPS_ACCURACY_THRESHOLD_METERS = 50;
 
+/**
+ * Distance threshold in metres used when opening the report form to decide
+ * whether the map's current centre is "at" the user's GPS location.
+ * If the distance between the map centre and the GPS fix is within this
+ * radius, the GPS coordinates are used as the initial pin position.
+ * If the map has been panned further away, the map centre is used instead,
+ * so the pin starts where the user is actually looking.
+ */
+export const MAP_CENTER_MATCH_THRESHOLD_M = 50;
+
 /** Maximum rows returned by get_heatmap_cells RPC (egress budget guard). */
 export const MAX_HEATMAP_ROWS = 500;
 

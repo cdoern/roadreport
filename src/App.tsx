@@ -13,7 +13,7 @@ import { ActivityFilter } from './components/filter/ActivityFilter';
 import { useHeatmapData } from './hooks/useHeatmapData';
 import { useGeolocation } from './hooks/useGeolocation';
 import { useSessionToken } from './hooks/useSessionToken';
-import { DEFAULT_CENTER } from './lib/constants';
+import { DEFAULT_CENTER, MAP_CENTER_MATCH_THRESHOLD_M } from './lib/constants';
 import { getDeferredInstallPrompt, clearDeferredInstallPrompt } from './main';
 import type { ActivityType, ToastState } from './types';
 
@@ -116,8 +116,45 @@ export default function App() {
   );
 
   const openReport = useCallback(() => {
-    const lat = geo.coords?.latitude ?? DEFAULT_CENTER[0];
-    const lng = geo.coords?.longitude ?? DEFAULT_CENTER[1];
+    const mapCenter = mapRef.current?.getCenter() ?? null;
+    const gps = geo.coords;
+
+    let lat: number;
+    let lng: number;
+
+    if (gps && mapCenter) {
+      // Inline Haversine — determine whether the map is centred on the user's
+      // GPS location. If the distance is within the threshold, treat the map
+      // as "at" the user's location and prefer the GPS fix for accuracy.
+      const R = 6_371_000; // Earth radius in metres
+      const dLat = ((mapCenter.lat - gps.latitude) * Math.PI) / 180;
+      const dLng = ((mapCenter.lng - gps.longitude) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((gps.latitude * Math.PI) / 180) *
+          Math.cos((mapCenter.lat * Math.PI) / 180) *
+          Math.sin(dLng / 2) ** 2;
+      const distanceM = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      if (distanceM <= MAP_CENTER_MATCH_THRESHOLD_M) {
+        // Map is centred on the user's location — use GPS for best accuracy.
+        lat = gps.latitude;
+        lng = gps.longitude;
+      } else {
+        // Map has been panned away — place the pin where the user is looking.
+        lat = mapCenter.lat;
+        lng = mapCenter.lng;
+      }
+    } else if (mapCenter) {
+      // GPS unavailable — use wherever the map is currently focused.
+      lat = mapCenter.lat;
+      lng = mapCenter.lng;
+    } else {
+      // Map not yet mounted (rare) — fall back to GPS or default centre.
+      lat = gps?.latitude ?? DEFAULT_CENTER[0];
+      lng = gps?.longitude ?? DEFAULT_CENTER[1];
+    }
+
     setPinLocation({ lat, lng });
     setPinAdjusted(false);
     setFormKey((k) => k + 1); // reset form fields to activity defaults
