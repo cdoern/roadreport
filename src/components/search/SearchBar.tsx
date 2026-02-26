@@ -156,7 +156,7 @@ export function SearchBar({ mapRef }: SearchBarProps) {
   // ── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] w-full max-w-sm px-4">
+    <div className="absolute top-3 left-3 right-14 z-[1000] sm:top-4 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto sm:w-full sm:max-w-sm sm:px-4">
       <div className="relative">
         <input
           type="search"
